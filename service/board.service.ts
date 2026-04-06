@@ -26,6 +26,14 @@ class boards{
         })
         return boards;
     }
+     async deleteBoard(boardId:string) {
+        const deletedBoard = await prisma.board.delete({
+            where: {
+                id: boardId
+            }
+        })
+        return deletedBoard;
+    }
 }
 
 

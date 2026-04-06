@@ -16,7 +16,7 @@ export const createUser = async (req : Request, res : Response) => {
 
 export const getUserByEmail = async (req : Request, res : Response) => {
     const {email} = req.params;
-    const user = new users("", email, "");
+    const user = new users("", email as string, "");
     try {
         const foundUser = await user.getUserByEmail();
         if(!foundUser) {
@@ -32,7 +32,7 @@ export const getUserByEmail = async (req : Request, res : Response) => {
 export const forgetPassword = async (req : Request, res : Response) => {
     const {email} = req.params;
     const {newPassword} = req.body;
-    const user = new users("", email, "");
+    const user = new users("", email as string, "");
     try {
         const updatedUser = await user.forgetPassword(newPassword);
         if(!updatedUser) {
