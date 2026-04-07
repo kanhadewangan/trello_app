@@ -69,3 +69,5 @@ class cards {
         return "Card deleted successfully";
     }   
 }
+
+export default cards;
