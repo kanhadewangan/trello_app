@@ -10,15 +10,20 @@ build:
     - bun build ./index.ts --outdir ./out --target bun
   artifacts:
     paths:
-      - build/
-       
+      - out/        # ✅ fixed: was 'build/', matches --outdir ./out
+      - node_modules/  # pass deps to next stages so they don't reinstall
+
 test:
   image: oven/bun:latest
+  needs: [build]   
   script:
-    - bun install
     - bun test
 
 deploy:
   image: oven/bun:latest
+  needs: [build, test]
+  only:
+    - main         # ✅ only deploy when merging into main
   script:
     - echo "Deploying to production..."
+    # e.g. scp, ssh, docker push, kubectl apply, etc.
