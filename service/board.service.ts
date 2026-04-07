@@ -34,6 +34,18 @@ class boards{
         })
         return deletedBoard;
     }
+    async getboardById(boardId:string) {
+        try{
+            const board = await prisma.board.findUnique({
+                where: {
+                    id: boardId
+                }
+            })
+            return board;
+        } catch (error) {
+            throw new Error(`Error fetching board with ID ${boardId}: ${(error as Error).message}`);
+        }
+    }
 }
 
 

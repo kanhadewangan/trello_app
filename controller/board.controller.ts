@@ -41,3 +41,18 @@ export const getBoards = async (req : Request, res : Response) => {
         res.status(500).json({message: error.message});
     }
 }
+
+export const getBoardById = async (req : Request, res : Response) => {
+    const {boardId} = req.params;
+    const board = new boards("","");
+    try {
+        const foundBoard = await board.getboardById(boardId as string);
+        if(!foundBoard) {
+            res.status(404).json({message: "No Board Found"});
+        } else {
+            res.status(200).json(foundBoard);
+        }
+    } catch (error : any) {
+        res.status(500).json({message: error.message});
+    }
+}

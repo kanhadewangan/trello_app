@@ -1,4 +1,5 @@
 import prisma from "../prisma/prisma";
+import jwt from "jsonwebtoken";
 class users {
      private name : string;
      private email : string;
@@ -30,6 +31,49 @@ class users {
             return user;
         } catch (error) {
             throw new Error("Error creating user");
+        }
+    }
+    async getUserDetails(userId : string) {
+        try{
+            const user = await prisma.users.findUnique({
+                where: {
+                    id: userId
+                },
+                select:{
+                    name: true,
+                    email: true,
+                    boards: {
+                        select: {
+                            id: true,
+                            title: true,
+                            description: true,
+                        }
+
+                }
+                
+            }})
+            return user;
+        }
+        catch(error){
+            throw new Error("Error fetching user details");
+        }
+    }
+    async login() {
+        try {
+            const user = await prisma.users.findFirst({
+                where: {
+                    email: this.email,
+                    password: this.password
+                },
+                select: {id: true}
+            })
+            if(!user) {
+                return "Invalid email or password";
+            }
+              return user;
+        }
+        catch (error) {
+            throw new Error("Error logging in");
         }
     }
 
