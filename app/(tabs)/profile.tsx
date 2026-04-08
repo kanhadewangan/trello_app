@@ -12,6 +12,14 @@ export default function ProfileScreen() {
   const { fetchBoards } = useDataStore();
   const [isSeeding, setIsSeeding] = useState(false);
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    }
+  };
+
   const handleSeedTestData = async () => {
     setIsSeeding(true);
     try {
@@ -36,7 +44,7 @@ export default function ProfileScreen() {
           <View className="w-full space-y-4">
             <Button title="Edit Profile" onPress={() => {}} variant="secondary" className="mb-4" />
             <Button title="Seed Test Data" onPress={handleSeedTestData} variant="outline" className="mb-4" isLoading={isSeeding} />
-            <Button title="Logout" onPress={logout} variant="outline" className="mb-4" />
+            <Button title="Logout" onPress={handleLogout} variant="outline" className="mb-4" />
           </View>
        </View>
     </SafeAreaView>

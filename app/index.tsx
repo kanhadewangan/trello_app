@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -8,11 +8,21 @@ import { useAuthStore } from '../store/useAuthStore';
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, error, isAuthenticated, isHydrated } = useAuthStore();
+
+  useEffect(() => {
+    if (isHydrated && isAuthenticated) {
+      router.replace('/(tabs)');
+    }
+  }, [isHydrated, isAuthenticated]);
 
   const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      return;
+    }
+
     try {
-      await login({ id: '1', name: 'GenZ Coder', email });
+      await login(email.trim(), password);
       router.replace('/(tabs)');
     } catch (e) {
       console.error(e);
@@ -40,8 +50,12 @@ export default function LoginScreen() {
           onChangeText={setPassword} 
           secureTextEntry 
         />
+        {error ? <Text className="text-red-500 mt-1 text-sm">{error}</Text> : null}
         <View className="mt-8" />
         <Button title="ENTER" onPress={handleLogin} isLoading={isLoading} />
+        <Pressable onPress={() => router.push('/signup')} className="mt-6 items-center">
+          <Text className="text-zinc-400">No account yet? <Text className="text-cyan-400">Sign up</Text></Text>
+        </Pressable>
       </View>
     </View>
   );

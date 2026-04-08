@@ -1,5 +1,20 @@
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
 
+export interface LoginResponse {
+  token: string;
+}
+
+export interface ApiMessageResponse {
+  message: string;
+}
+
+export interface UserResponse {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+}
+
 export const fetchWithFallback = async <T>(endpoint: string, options?: RequestInit, fallbackData?: T): Promise<T> => {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -47,7 +62,12 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(payload),
       }),
-    getByEmail: (email: string) => requestJson(`/users/${encodeURIComponent(email)}`),
+    login: (payload: { email: string; password: string }) =>
+      requestJson<LoginResponse>('/users/login', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+    getByEmail: (email: string) => requestJson<UserResponse>(`/users/${encodeURIComponent(email)}`),
     forgetPassword: (email: string, newPassword: string) =>
       requestJson(`/users/forget-password/${encodeURIComponent(email)}`, {
         method: 'PUT',
