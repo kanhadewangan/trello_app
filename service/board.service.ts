@@ -20,9 +20,15 @@ class boards {
     }
     async getBoards(userId: string) {
         const boards = await prisma.board.findMany({
-            where: {
-                userId: userId
+            where:{
+                userId
+            },
+            select:{
+                title:true,
+                description:true,
+                id:false
             }
+          
         })
         return boards;
     }
@@ -39,6 +45,10 @@ class boards {
             const board = await prisma.board.findUnique({
                 where: {
                     id: boardId
+                },
+                select:{
+                    title:true,
+                    description:true
                 }
             })
             return board;
@@ -50,6 +60,10 @@ class boards {
         const boards = await prisma.board.findMany({
             where: {
                 userId: userId
+            },
+            select:{
+                title:true,
+                description:true
             }
         });
         return boards;
