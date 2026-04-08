@@ -3,27 +3,29 @@ stages:
   - test
   - deploy
 
-build:
+build-job:
+  stage: build
   image: oven/bun:latest
   script:
     - bun install
     - bun build ./index.ts --outdir ./out --target bun
   artifacts:
     paths:
-      - out/        # ✅ fixed: was 'build/', matches --outdir ./out
-      - node_modules/  # pass deps to next stages so they don't reinstall
+      - out/        
+      - node_modules/  
 
-test:
+test-job:
+  stage: test
   image: oven/bun:latest
   needs: [build]   
   script:
     - bun test
 
-deploy:
+deploy-job:
+  stage: deploy
   image: oven/bun:latest
   needs: [build, test]
   only:
-    - main         # ✅ only deploy when merging into main
+    - main         
   script:
     - echo "Deploying to production..."
-    # e.g. scp, ssh, docker push, kubectl apply, etc.
