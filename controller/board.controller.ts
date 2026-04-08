@@ -1,9 +1,9 @@
-import { type Request, type Response } from 'express';
+import { request, type Request, type Response } from 'express';
 import boards from '../service/board.service';
 
 export const createBoard = async (req: Request, res: Response) => {
     const { title, description } = req.body;
-    const userId = req.params.userId;
+    const userId = (req as any).user.id;
     const board = new boards(title, description);
     try {
         const newBoard = await board.createBoard(userId as string);
@@ -14,7 +14,7 @@ export const createBoard = async (req: Request, res: Response) => {
 }
 
 export const getBoards = async (req: Request, res: Response) => {
-    const userId = req.params.userId;
+    const userId = (req as any).user.id;
     const board = new boards("", "");
     try {
         const foundBoards = await board.getBoards(userId as string);
@@ -60,7 +60,8 @@ export const getBoardById = async (req: Request, res: Response) => {
 export const getAllBoard = async (req: Request, res: Response) => {
     const board = new boards("", "");
     try {
-        const foundBoards = await board.getAllBoard();
+        const userId = (req as any).user.id;
+        const foundBoards = await board.getAllBoard(userId);
         if (!foundBoards) {
             res.status(404).json({ message: "No Boards Found" });
         } else {

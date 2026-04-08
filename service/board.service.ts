@@ -46,8 +46,12 @@ class boards {
             throw new Error(`Error fetching board with ID ${boardId}: ${(error as Error).message}`);
         }
     }
-    async getAllBoard() {
-        const boards = await prisma.board.findMany();
+    async getAllBoard(userId: string) {
+        const boards = await prisma.board.findMany({
+            where: {
+                userId: userId
+            }
+        });
         return boards;
     }
 }
