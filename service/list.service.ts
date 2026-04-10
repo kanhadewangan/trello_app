@@ -66,6 +66,51 @@ class list {
         })
         return updatedList;
     }
+    deleteList = async (listId : string) => {
+        const existingList = await prisma.list.findFirst({
+            where: {
+                id: listId  
+            }
+        })
+        if(!existingList) {
+            return "No List Found";
+        }
+        await prisma.list.delete({
+            where: {
+                id: listId
+            }
+        })
+        return "List Deleted Successfully"; 
+
+ 
+    }
+    getListsByBoardId(boardId : string) {
+        const lists = prisma.list.findMany({
+            where: {
+                boardId: boardId
+            }
+        })
+        return lists;
+    }
+
+    getListById(listId:string){
+        return prisma.list.findUnique({
+            where:{
+                id:listId
+            }
+        });
+
+    }
+    getAllList(userId: string) {
+        const lists = prisma.list.findMany({
+            where: {
+                board: {
+                    userId: userId
+                }
+            }
+        })
+        return lists;
+    }
 }
 
 export default list;
