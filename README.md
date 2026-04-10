@@ -25,6 +25,7 @@ Base URL: `http://localhost:3000`
 | Method | Full Route |
 | --- | --- |
 | POST | `http://localhost:3000/users/create` |
+| POST | `http://localhost:3000/users/login` |
 | GET | `http://localhost:3000/users/:email` |
 | PUT | `http://localhost:3000/users/forget-password/:email` |
 | PUT | `http://localhost:3000/users/change-name/:id` |
@@ -33,10 +34,10 @@ Base URL: `http://localhost:3000`
 
 | Method | Full Route |
 | --- | --- |
-| POST | `http://localhost:3000/boards/` |
+| POST | `http://localhost:3000/boards/create` |
+| GET | `http://localhost:3000/boards` |
 | GET | `http://localhost:3000/boards/:boardId` |
 | DELETE | `http://localhost:3000/boards/:boardId` |
-| GET | `http://localhost:3000/boards/` |
 
 ### Cards
 
@@ -52,3 +53,16 @@ Base URL: `http://localhost:3000`
 | --- | --- |
 | GET | `http://localhost:3000/test-data/preview` |
 | POST | `http://localhost:3000/test-data/seed` |
+
+### Lists
+
+These routes exist in `back/routes/list.route.ts` but are not currently mounted in `back/index.ts`.
+
+| Method | Full Route |
+| --- | --- |
+| POST | `http://localhost:3000/lists/create` |
+| GET | `http://localhost:3000/lists/get` |
+| GET | `http://localhost:3000/lists/get/:listId` |
+| DELETE | `http://localhost:3000/lists/delete/:listId` |
+| GET | `http://localhost:3000/lists/getbyboard/:boardId` |
+| GET | `http://localhost:3000/lists/getall` |
