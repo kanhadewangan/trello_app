@@ -3,6 +3,7 @@ import userRoutes from './routes/user.route';
 import boardRoutes from './routes/board.route';
 import cardRoutes from './routes/card.route';
 import testDataRoutes from './routes/test-data.route';
+import listRoutes from './routes/list.route';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
@@ -11,15 +12,14 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-    origin: process.env.CORS_ORIGIN 
+    origin: "*"
 }))
 
 app.use('/users', userRoutes);
 app.use('/boards', boardRoutes);
 app.use('/cards', cardRoutes);
 app.use('/test-data', testDataRoutes);
+app.use('/lists', listRoutes);
 
 
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
-})
+app.listen(3000, '0.0.0.0', () => console.log('Server running'))
