@@ -56,8 +56,6 @@ Base URL: `http://localhost:3000`
 
 ### Lists
 
-These routes exist in `back/routes/list.route.ts` but are not currently mounted in `back/index.ts`.
-
 | Method | Full Route |
 | --- | --- |
 | POST | `http://localhost:3000/lists/create` |
