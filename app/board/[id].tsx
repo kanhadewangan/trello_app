@@ -1,54 +1,173 @@
-import React, { useEffect } from 'react';
-import { View, Text, FlatList, Pressable } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDataStore } from '../../store/useDataStore';
+import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { ExpandableCard } from '../../components/ExpandableCard';
+import { useDataStore, CardItem } from '../../store/useDataStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { ListColumn } from '../../components/ListColumn';
+import { CardDetailSheet } from '../../components/CardDetailSheet';
+import { colors } from '../../theme/colors';
+import { typography } from '../../theme/typography';
+import { spacing, radius } from '../../theme/spacing';
 
 export default function BoardScreen() {
-  const { id } = useLocalSearchParams();
-  const { lists, cards, fetchListsAndCards, boards } = useDataStore();
-  const board = boards.find(b => b.id === id);
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { lists, cards, boards, fetchListsAndCards, createList, createCard, updateCard, isLoading } =
+    useDataStore();
+
+  const board = boards.find((b) => b.id === id);
+  const [selectedCard, setSelectedCard] = useState<CardItem | null>(null);
+  const [addingList, setAddingList] = useState(false);
+
+  const { isHydrated, isAuthenticated, token } = useAuthStore();
 
   useEffect(() => {
-    if (id) {
-      fetchListsAndCards(id as string);
+    // Only attempt fetch if we are hydrated to avoid premature requests missing tokens
+    if (id && isHydrated && isAuthenticated) {
+      fetchListsAndCards(id);
     }
-  }, [id]);
+  }, [id, isHydrated, isAuthenticated, token]);
 
-  const renderList = ({ item: list }: { item: any }) => {
-    const listCards = cards.filter((c: any) => c.listId === list.id);
-    return (
-      <View className="w-72 mr-6 bg-zinc-900/50 border border-white/10 rounded-3xl p-4">
-        <Text className="text-lg font-bold text-cyan-400 mb-4 uppercase tracking-widest">{list.title}</Text>
-        {listCards.map((card: any) => (
-          <ExpandableCard key={card.id} title={card.title} description={card.description} />
-        ))}
-        <Pressable className="mt-2 py-3 bg-white/5 rounded-xl border border-white/10 items-center">
-            <Text className="text-fuchsia-500 font-bold">+ Add Card</Text>
-        </Pressable>
-      </View>
-    );
+  const boardLists = lists.filter((l) => l.boardId === id);
+
+  const handleAddCard = async (listId: string, title: string) => {
+    await createCard(listId, title);
+  };
+
+  const handleAddList = async (title: string) => {
+    if (!id) return;
+    await createList(id, title);
+    setAddingList(false);
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      <View className="px-6 py-4 flex-row items-center border-b border-white/5">
-        <Pressable onPress={() => router.back()} className="mr-4">
-          <MaterialCommunityIcons name="arrow-left" size={28} color="#d946ef" />
-        </Pressable>
-        <Text className="text-2xl font-black text-white">{board?.title || 'Board Details'}</Text>
-      </View>
-      
-      <FlatList
-        data={lists}
-        keyExtractor={item => item.id}
-        renderItem={renderList}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="flex-1 p-6"
-      />
-    </SafeAreaView>
+    <View style={[styles.root, { backgroundColor: board?.color ?? colors.primary }]}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        {/* Board header */}
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} hitSlop={8} style={styles.backBtn}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
+          </Pressable>
+          <Text style={styles.title} numberOfLines={1}>
+            {board?.title ?? 'Board'}
+          </Text>
+          <Pressable hitSlop={8}>
+            <MaterialCommunityIcons name="dots-horizontal" size={24} color="#fff" />
+          </Pressable>
+        </View>
+
+        {/* Lists */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.listsContent}
+          decelerationRate="fast"
+          snapToInterval={296}   // column 280 + margin 16
+          snapToAlignment="start"
+        >
+          {boardLists.map((list) => {
+            const listCards = cards.filter((c) => c.listId === list.id);
+            return (
+              <ScrollView
+                key={list.id}
+                style={styles.listScrollWrapper}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={false}
+              >
+                <ListColumn
+                  id={list.id}
+                  title={list.title}
+                  cards={listCards}
+                  onCardPress={(card) => setSelectedCard(card)}
+                  onAddCard={handleAddCard}
+                />
+              </ScrollView>
+            );
+          })}
+
+          {/* Add another list */}
+          <Pressable
+            style={styles.addListBtn}
+            onPress={() => {
+              // Simple prompt-like inline addition
+              setAddingList(true);
+            }}
+          >
+            <MaterialCommunityIcons name="plus" size={18} color="#fff" />
+            <Text style={styles.addListText}>Add another list</Text>
+          </Pressable>
+        </ScrollView>
+      </SafeAreaView>
+
+      {/* Card detail bottom sheet */}
+      {selectedCard && (
+        <CardDetailSheet
+          card={selectedCard}
+          onClose={() => setSelectedCard(null)}
+          onUpdate={(cardId, updates) => updateCard(cardId, updates)}
+        />
+      )}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+  },
+  backBtn: {
+    marginRight: spacing.md,
+  },
+  title: {
+    flex: 1,
+    fontSize: typography.fontSize.xl,
+    fontWeight: typography.fontWeight.bold,
+    color: '#fff',
+    textShadowColor: 'rgba(0,0,0,0.25)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  listsContent: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xl,
+    alignItems: 'flex-start',
+  },
+  listScrollWrapper: {
+    maxHeight: '100%',
+    flexGrow: 0,
+    marginRight: spacing.md,
+  },
+  addListBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+    width: 200,
+    alignSelf: 'flex-start',
+  },
+  addListText: {
+    color: '#fff',
+    fontWeight: typography.fontWeight.semibold,
+    fontSize: typography.fontSize.base,
+    marginLeft: 6,
+  },
+});

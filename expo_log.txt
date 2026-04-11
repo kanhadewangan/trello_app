@@ -1,0 +1,40 @@
+Starting project at /home/kanha/projects/trello/mobile
+React Compiler enabled
+Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Web node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web node_modules/expo-router/entry.js ▓▓░░░░░░░░░░░░░░ 14.1% ( 53/168)
+λ node_modules/expo-router/node/render.js ▓▓▓▓▓▓▓▓░░░░░░░░ 52.7% (408/610)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓░░░░░░░░░░░ 37.2% (272/446)
+λ node_modules/expo-router/node/render.js ▓▓▓▓▓▓▓▓▓▓░░░░░░ 68.2% (776/946)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓░░░░░░░░░ 49.8% (479/694)
+λ node_modules/expo-router/node/render.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 85.2% (1028/1114)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓░░░░ 75.6% ( 958/1102)
+λ node_modules/expo-router/node/render.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 89.2% (1208/1279)
+λ Bundled 17152ms node_modules/expo-router/node/render.js (1396 modules)
+"textShadow*" style props are deprecated. Use "textShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░ 96.2% (1418/1446)
+Web Bundled 18902ms node_modules/expo-router/entry.js (1447 modules)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓░░░░░░░░░ 46.8% (597/873)
+Web node_modules/expo-router/entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░ 89.4% (1203/1272)
+Web Bundled 7863ms node_modules/expo-router/entry.js (1449 modules)
+ LOG  [web] Logs will appear in the browser console
+Web node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+λ Bundled 63ms node_modules/expo-router/node/render.js (1 module)
+"textShadow*" style props are deprecated. Use "textShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+Web Bundled 870ms node_modules/expo-router/entry.js (1 module)
+Web node_modules/expo-router/entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+λ Bundled 236ms node_modules/expo-router/node/render.js (1 module)
+"textShadow*" style props are deprecated. Use "textShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+Web Bundled 1011ms node_modules/expo-router/entry.js (1 module)
+Web Bundled 76ms node_modules/expo-router/entry.js (1 module)
+λ Bundled 39ms node_modules/expo-router/node/render.js (1 module)
+"textShadow*" style props are deprecated. Use "textShadow".
+"shadow*" style props are deprecated. Use "boxShadow".
+Web Bundled 282ms node_modules/expo-router/entry.js (1 module)
+ LOG  [web] Logs will appear in the browser console

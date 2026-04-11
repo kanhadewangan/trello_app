@@ -1,4 +1,6 @@
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
+export const API_BASE_URL = 'http://10.210.128.39:3000';
+
+type AuthToken = string | null | undefined;
 
 export interface LoginResponse {
   token: string;
@@ -15,14 +17,24 @@ export interface UserResponse {
   avatar?: string;
 }
 
+export interface SeedOptions {
+  usersCount?: number;
+  boardsPerUser?: number;
+  listsPerBoard?: number;
+  cardsPerList?: number;
+}
+
+const withAuthHeaders = (headers: HeadersInit | undefined, token?: AuthToken): HeadersInit => ({
+  'Content-Type': 'application/json',
+  ...(headers || {}),
+  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+});
+
 export const fetchWithFallback = async <T>(endpoint: string, options?: RequestInit, fallbackData?: T): Promise<T> => {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options?.headers || {}),
-      },
+      headers: withAuthHeaders(options?.headers),
     });
 
     if (!response.ok) {
@@ -38,13 +50,10 @@ export const fetchWithFallback = async <T>(endpoint: string, options?: RequestIn
   }
 };
 
-const requestJson = async <T>(endpoint: string, options?: RequestInit): Promise<T> => {
+const requestJson = async <T>(endpoint: string, options?: RequestInit, token?: AuthToken): Promise<T> => {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options?.headers || {}),
-    },
+    headers: withAuthHeaders(options?.headers, token),
   });
 
   if (!response.ok) {
@@ -80,33 +89,63 @@ export const api = {
       }),
   },
   boards: {
-    create: (payload: { title: string; description?: string }) =>
-      requestJson('/boards', {
+    create: (payload: { title: string; description?: string }, token?: AuthToken) =>
+      requestJson('/boards/create', {
         method: 'POST',
         body: JSON.stringify(payload),
-      }),
-    getById: (boardId: string) => requestJson(`/boards/${encodeURIComponent(boardId)}`),
-    remove: (boardId: string) =>
+      }, token),
+    getById: (boardId: string, token?: AuthToken) => requestJson(`/boards/${encodeURIComponent(boardId)}`, undefined, token),
+    remove: (boardId: string, token?: AuthToken) =>
       requestJson(`/boards/${encodeURIComponent(boardId)}`, {
         method: 'DELETE',
-      }),
-    getAll: () => requestJson('/boards'),
+      }, token),
+    getAll: (token?: AuthToken) => requestJson('/boards', undefined, token),
+  },
+  lists: {
+    create: (payload: { boardId: string; title: string }, token?: AuthToken) =>
+      requestJson('/lists/create', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }, token),
+    getAll: (token?: AuthToken) => requestJson('/lists/getall', undefined, token),
+    getMany: (token?: AuthToken) => requestJson('/lists/get', undefined, token),
+    getById: (listId: string, token?: AuthToken) => requestJson(`/lists/get/${encodeURIComponent(listId)}`, undefined, token),
+    getByBoardId: (boardId: string, token?: AuthToken) => requestJson(`/lists/getbyboard/${encodeURIComponent(boardId)}`, undefined, token),
+    remove: (listId: string, token?: AuthToken) =>
+      requestJson(`/lists/delete/${encodeURIComponent(listId)}`, {
+        method: 'DELETE',
+      }, token),
   },
   cards: {
-    create: (listId: string, payload: { title: string; description?: string }) =>
+    create: (listId: string, payload: { title: string; description?: string }, token?: AuthToken) =>
       requestJson(`/cards/${encodeURIComponent(listId)}`, {
         method: 'POST',
         body: JSON.stringify(payload),
-      }),
-    getByListId: (listId: string) => requestJson(`/cards/${encodeURIComponent(listId)}`),
-    update: (cardId: string, payload: { newTitle: string; newDescription: string }) =>
+      }, token),
+    getByListId: (listId: string, token?: AuthToken) => requestJson(`/cards/${encodeURIComponent(listId)}`, undefined, token),
+    update: (cardId: string, payload: { newTitle: string; newDescription: string }, token?: AuthToken) =>
       requestJson(`/cards/${encodeURIComponent(cardId)}`, {
         method: 'PUT',
         body: JSON.stringify(payload),
-      }),
+      }, token),
   },
   testData: {
-    preview: () => requestJson('/test-data/preview'),
-    seed: () => requestJson('/test-data/seed', { method: 'POST' }),
+    preview: (options?: SeedOptions) => {
+      const query = options
+        ? new URLSearchParams(
+          Object.entries(options)
+            .filter(([, value]) => value !== undefined)
+            .map(([key, value]) => [key, String(value)])
+        ).toString()
+        : '';
+
+      const endpoint = query ? `/test-data/preview?${query}` : '/test-data/preview';
+      return requestJson(endpoint);
+    },
+    seed: (options?: SeedOptions) =>
+      requestJson('/test-data/seed', {
+        method: 'POST',
+        body: JSON.stringify(options ?? {}),
+      }),
   },
 };
