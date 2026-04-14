@@ -37,7 +37,7 @@ export default function HomeScreen() {
         return (
           <CreateBoardCard
             index={index}
-            onPress={() => router.push('/create-board')}
+            onPress={() => router.push('/boards/create' as any)}
           />
         );
       }
@@ -47,6 +47,7 @@ export default function HomeScreen() {
           index={index}
           onPress={(b) => router.push(`/board/${b.id}`)}
           onStar={(b) => toggleStar(b.id)}
+          onMenu={(b) => router.push(`/boards/${b.id}` as any)}
         />
       );
     },

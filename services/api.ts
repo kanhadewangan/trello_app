@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://10.210.128.39:3000';
+export const API_BASE_URL = 'http://10.210.128.40:3000';
 
 type AuthToken = string | null | undefined;
 
@@ -147,5 +147,34 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(options ?? {}),
       }),
+  },
+  groups: {
+    create: (payload: { name: string }, token?: AuthToken) =>
+      requestJson('/groups', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }, token),
+    getAll: (token?: AuthToken) =>
+      requestJson('/groups', undefined, token),
+    getById: (groupId: string, token?: AuthToken) =>
+      requestJson(`/groups/${encodeURIComponent(groupId)}`, undefined, token),
+    delete: (groupId: string, token?: AuthToken) =>
+      requestJson(`/groups/${encodeURIComponent(groupId)}`, {
+        method: 'DELETE',
+      }, token),
+    invite: (groupId: string, payload: { userId: string }, token?: AuthToken) =>
+      requestJson(`/groups/${encodeURIComponent(groupId)}/invite`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }, token),
+    acceptInvitation: (groupId: string, token?: AuthToken) =>
+      requestJson(`/groups/${encodeURIComponent(groupId)}/accept`, {
+        method: 'POST',
+      }, token),
+    removeMember: (groupId: string, payload: { userId: string }, token?: AuthToken) =>
+      requestJson(`/groups/${encodeURIComponent(groupId)}/remove`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }, token),
   },
 };

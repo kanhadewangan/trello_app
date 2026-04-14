@@ -32,18 +32,43 @@ export interface ListItem {
   id: string;
   boardId: string;
   title: string;
+  sections?: ListSection[];
+}
+
+export interface ListSection {
+  id: string;
+  listId: string;
+  title: string;
+  isCollapsed?: boolean;
+  cardIds?: string[];
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  createdBy?: string;
+  members?: string[];
+  invitedMembers?: string[];
+  createdAt?: string;
 }
 
 interface DataState {
   boards: Board[];
   lists: ListItem[];
   cards: CardItem[];
+  groups: Group[];
   isLoading: boolean;
   fetchBoards: () => Promise<void>;
   fetchListsAndCards: (boardId: string) => Promise<void>;
+  fetchGroups: () => Promise<void>;
   createBoard: (title: string, color?: string) => Promise<void>;
   createList: (boardId: string, title: string) => Promise<void>;
   createCard: (listId: string, title: string) => Promise<void>;
+  createGroup: (name: string) => Promise<void>;
+  deleteGroup: (groupId: string) => Promise<void>;
+  inviteMemberToGroup: (groupId: string, userId: string) => Promise<void>;
+  acceptGroupInvitation: (groupId: string) => Promise<void>;
+  removeGroupMember: (groupId: string, userId: string) => Promise<void>;
   updateCard: (cardId: string, updates: Partial<CardItem>) => void;
   toggleStar: (boardId: string) => void;
 }
@@ -140,6 +165,7 @@ export const useDataStore = create<DataState>((set, get) => ({
   boards: [],
   lists: [],
   cards: [],
+  groups: [],
   isLoading: false,
 
   fetchBoards: async () => {
@@ -164,12 +190,12 @@ export const useDataStore = create<DataState>((set, get) => ({
     set({ isLoading: true });
     try {
       const token = useAuthStore.getState().token;
-      const listsData: any[] = await api.lists.getByBoardId(boardId, token);
+      const listsData = (await api.lists.getByBoardId(boardId, token)) as any[];
       const cardsData = (
         await Promise.all(
           listsData.map(async (list: any) => {
             try {
-              const cards: any[] = await api.cards.getByListId(list.id, token);
+              const cards = (await api.cards.getByListId(list.id, token)) as any[];
               return cards.map((c, i) => ({
                 ...c,
                 listId: list.id,
@@ -188,6 +214,26 @@ export const useDataStore = create<DataState>((set, get) => ({
         fallbackLists.some((l) => l.id === c.listId)
       );
       set({ lists: fallbackLists, cards: fallbackCards, isLoading: false });
+    }
+  },
+
+  fetchGroups: async () => {
+    set({ isLoading: true });
+    try {
+      const token = useAuthStore.getState().token;
+      const data = await api.groups.getAll(token);
+      const mapped: Group[] = (data as any[]).map((g) => ({
+        id: g.id,
+        name: g.name,
+        createdBy: g.createdBy,
+        members: g.members || [],
+        invitedMembers: g.invitedMembers || [],
+        createdAt: g.createdAt,
+      }));
+      set({ groups: mapped, isLoading: false });
+    } catch (error) {
+      console.error('Failed to fetch groups:', error);
+      set({ groups: [], isLoading: false });
     }
   },
 
@@ -233,6 +279,98 @@ export const useDataStore = create<DataState>((set, get) => ({
     } catch {
       const optimistic: CardItem = { id: `local_${Date.now()}`, listId, title };
       set((s) => ({ cards: [...s.cards, optimistic] }));
+    }
+  },
+
+  createGroup: async (name: string) => {
+    const token = useAuthStore.getState().token;
+    try {
+      const newGroup: any = await api.groups.create({ name }, token);
+      const group: Group = {
+        id: newGroup.id,
+        name: newGroup.name,
+        createdBy: newGroup.createdBy,
+        members: newGroup.members || [],
+        invitedMembers: newGroup.invitedMembers || [],
+        createdAt: newGroup.createdAt,
+      };
+      set((s) => ({ groups: [...s.groups, group] }));
+    } catch (error) {
+      console.error('Failed to create group:', error);
+      throw error;
+    }
+  },
+
+  deleteGroup: async (groupId: string) => {
+    const token = useAuthStore.getState().token;
+    try {
+      await api.groups.delete(groupId, token);
+      set((s) => ({ groups: s.groups.filter((g) => g.id !== groupId) }));
+    } catch (error) {
+      console.error('Failed to delete group:', error);
+      throw error;
+    }
+  },
+
+  inviteMemberToGroup: async (groupId: string, userId: string) => {
+    const token = useAuthStore.getState().token;
+    try {
+      await api.groups.invite(groupId, { userId }, token);
+      set((s) => ({
+        groups: s.groups.map((g) =>
+          g.id === groupId
+            ? {
+              ...g,
+              invitedMembers: [...(g.invitedMembers || []), userId],
+            }
+            : g
+        ),
+      }));
+    } catch (error) {
+      console.error('Failed to invite member:', error);
+      throw error;
+    }
+  },
+
+  acceptGroupInvitation: async (groupId: string) => {
+    const token = useAuthStore.getState().token;
+    try {
+      await api.groups.acceptInvitation(groupId, token);
+      const userId = useAuthStore.getState().user?.id;
+      set((s) => ({
+        groups: s.groups.map((g) =>
+          g.id === groupId
+            ? {
+              ...g,
+              members: [...(g.members || []), userId || ''],
+              invitedMembers: (g.invitedMembers || []).filter((u) => u !== userId),
+            }
+            : g
+        ),
+      }));
+    } catch (error) {
+      console.error('Failed to accept invitation:', error);
+      throw error;
+    }
+  },
+
+  removeGroupMember: async (groupId: string, userId: string) => {
+    const token = useAuthStore.getState().token;
+    try {
+      await api.groups.removeMember(groupId, { userId }, token);
+      set((s) => ({
+        groups: s.groups.map((g) =>
+          g.id === groupId
+            ? {
+              ...g,
+              members: (g.members || []).filter((u) => u !== userId),
+            }
+            : g
+        ),
+      }));
+    } catch (error) {
+      console.error('Failed to remove member:', error);
+      throw error;
     }
   },
 

@@ -24,11 +24,12 @@ interface BoardCardProps {
   index: number;
   onPress?: (board: BoardData) => void;
   onStar?: (board: BoardData) => void;
+  onMenu?: (board: BoardData) => void;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export const BoardCard: React.FC<BoardCardProps> = ({ board, index, onPress, onStar }) => {
+export const BoardCard: React.FC<BoardCardProps> = ({ board, index, onPress, onStar, onMenu }) => {
   const scale = useSharedValue(1);
   const bgColor = board.color ?? colors.boardColors[index % colors.boardColors.length];
 
@@ -52,17 +53,30 @@ export const BoardCard: React.FC<BoardCardProps> = ({ board, index, onPress, onS
 
         <Text style={styles.title} numberOfLines={2}>{board.title}</Text>
 
-        <Pressable
-          style={styles.starBtn}
-          hitSlop={8}
-          onPress={() => onStar?.(board)}
-        >
-          <MaterialCommunityIcons
-            name={board.starred ? 'star' : 'star-outline'}
-            size={18}
-            color={board.starred ? '#FFD700' : 'rgba(255,255,255,0.7)'}
-          />
-        </Pressable>
+        <View style={styles.bottomBar}>
+          <Pressable
+            style={styles.starBtn}
+            hitSlop={8}
+            onPress={() => onStar?.(board)}
+          >
+            <MaterialCommunityIcons
+              name={board.starred ? 'star' : 'star-outline'}
+              size={18}
+              color={board.starred ? '#FFD700' : 'rgba(255,255,255,0.7)'}
+            />
+          </Pressable>
+          <Pressable
+            style={styles.menuBtn}
+            hitSlop={8}
+            onPress={() => onMenu?.(board)}
+          >
+            <MaterialCommunityIcons
+              name="dots-horizontal"
+              size={18}
+              color="rgba(255,255,255,0.7)"
+            />
+          </Pressable>
+        </View>
       </AnimatedPressable>
     </Animated.View>
   );
@@ -106,8 +120,16 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
     maxWidth: '80%',
   },
+  bottomBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   starBtn: {
-    alignSelf: 'flex-end',
+    padding: 4,
+  },
+  menuBtn: {
+    padding: 4,
   },
   createCard: {
     height: 96,
