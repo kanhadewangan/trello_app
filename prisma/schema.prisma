@@ -16,6 +16,7 @@ model users {
   updatedAt DateTime @updatedAt
   boards    board[]
   members groups[] @relation("GroupMembers")
+  invitations invitation[]
   notifications notifications[]
 }
 
@@ -58,6 +59,8 @@ model invitation {
   groupId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  userId String
+  users users @relation(fields: [userId], references: [id])
   groups groups @relation(fields: [groupId], references: [id])
 }
 model groups{

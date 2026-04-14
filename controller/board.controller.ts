@@ -9,6 +9,7 @@ export const createBoard = async (req: Request, res: Response) => {
         const newBoard = await board.createBoard(userId as string);
         res.status(201).json(newBoard);
     } catch (error: any) {
+        console.log(error);
         res.status(500).json({ message: error.message });
     }
 }
