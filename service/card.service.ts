@@ -1,4 +1,5 @@
 import prisma from "../prisma/prisma";
+import notificationService from "./notification.service";
 
 
 class cards {
@@ -18,8 +19,19 @@ class cards {
                 description: this.description,
                 position:this.position,
                 listId: listId
+            },
+            include: {
+                list: {
+                    include: {
+                        board: true
+                    }
+                }
             }
         })
+        
+        // TODO: Send notification to board members when card is created
+        // await notificationService.notifyCardCreated(...)
+        
         return card;
     }
 
