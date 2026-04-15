@@ -30,6 +30,7 @@ class users {
             })
             return user;
         } catch (error) {
+            console.log(error);
             throw new Error("Error creating user");
         }
     }

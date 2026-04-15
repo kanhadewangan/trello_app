@@ -23,7 +23,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
         (req as any).user = user;
         next();
     } catch (error) {
-        
+        console.log(error);
         return res.status(401).json({ message: "Unauthorized" });
     }
 }
