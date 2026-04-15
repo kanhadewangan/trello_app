@@ -52,15 +52,30 @@ export interface Group {
   createdAt?: string;
 }
 
+export interface Notification {
+  id: string;
+  userId: string;
+  type: 'BOARD_INVITATION' | 'GROUP_INVITATION' | 'CARD_ASSIGNED' | 'CARD_MOVED' | 'COMMENT_ADDED' | 'CARD_DUE_SOON';
+  message: string;
+  read: boolean;
+  data?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface DataState {
   boards: Board[];
   lists: ListItem[];
   cards: CardItem[];
   groups: Group[];
+  notifications: Notification[];
+  unreadCount: number;
   isLoading: boolean;
   fetchBoards: () => Promise<void>;
   fetchListsAndCards: (boardId: string) => Promise<void>;
   fetchGroups: () => Promise<void>;
+  fetchNotifications: (limit?: number, offset?: number) => Promise<void>;
+  fetchUnreadCount: () => Promise<void>;
   createBoard: (title: string, color?: string) => Promise<void>;
   createList: (boardId: string, title: string) => Promise<void>;
   createCard: (listId: string, title: string) => Promise<void>;
@@ -70,6 +85,14 @@ interface DataState {
   acceptGroupInvitation: (groupId: string) => Promise<void>;
   removeGroupMember: (groupId: string, userId: string) => Promise<void>;
   updateCard: (cardId: string, updates: Partial<CardItem>) => void;
+  updateList: (listId: string, title: string) => Promise<void>;
+  deleteList: (listId: string) => Promise<void>;
+  updateListPosition: (listId: string, newPosition: number) => Promise<void>;
+  markNotificationAsRead: (notificationId: string) => Promise<void>;
+  markAllNotificationsAsRead: () => Promise<void>;
+  deleteNotification: (notificationId: string) => Promise<void>;
+  clearAllNotifications: () => Promise<void>;
+  addNotification: (notification: Notification) => void;
   toggleStar: (boardId: string) => void;
 }
 
@@ -166,6 +189,8 @@ export const useDataStore = create<DataState>((set, get) => ({
   lists: [],
   cards: [],
   groups: [],
+  notifications: [],
+  unreadCount: 0,
   isLoading: false,
 
   fetchBoards: async () => {
@@ -377,6 +402,137 @@ export const useDataStore = create<DataState>((set, get) => ({
   updateCard: (cardId: string, updates: Partial<CardItem>) => {
     set((s) => ({
       cards: s.cards.map((c) => (c.id === cardId ? { ...c, ...updates } : c)),
+    }));
+  },
+
+  updateList: async (listId: string, title: string) => {
+    const token = useAuthStore.getState().token;
+    try {
+      await api.lists.update(listId, { newTitle: title }, token);
+      set((s) => ({
+        lists: s.lists.map((l) => (l.id === listId ? { ...l, title } : l)),
+      }));
+    } catch (error) {
+      console.error('Failed to update list:', error);
+      throw error;
+    }
+  },
+
+  deleteList: async (listId: string) => {
+    const token = useAuthStore.getState().token;
+    try {
+      await api.lists.remove(listId, token);
+      set((s) => ({
+        lists: s.lists.filter((l) => l.id !== listId),
+        cards: s.cards.filter((c) => c.listId !== listId),
+      }));
+    } catch (error) {
+      console.error('Failed to delete list:', error);
+      throw error;
+    }
+  },
+
+  updateListPosition: async (listId: string, newPosition: number) => {
+    const token = useAuthStore.getState().token;
+    try {
+      await api.lists.updatePosition(listId, { newPosition }, token);
+      // Position update optimistically handled by sorting
+    } catch (error) {
+      console.error('Failed to update list position:', error);
+      throw error;
+    }
+  },
+
+  fetchNotifications: async (limit?: number, offset?: number) => {
+    set({ isLoading: true });
+    try {
+      const token = useAuthStore.getState().token;
+      const data = await api.notifications.getAll(token, limit, offset) as any[];
+      const notifications: Notification[] = data.map((n) => ({
+        id: n.id,
+        userId: n.userId,
+        type: n.type,
+        message: n.message,
+        read: n.read,
+        data: n.data,
+        createdAt: n.createdAt,
+        updatedAt: n.updatedAt,
+      }));
+      set({ notifications, isLoading: false });
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+      set({ notifications: [], isLoading: false });
+    }
+  },
+
+  fetchUnreadCount: async () => {
+    try {
+      const token = useAuthStore.getState().token;
+      const response = await api.notifications.getUnreadCount(token) as any;
+      set({ unreadCount: response.count || 0 });
+    } catch (error) {
+      console.error('Failed to fetch unread count:', error);
+    }
+  },
+
+  markNotificationAsRead: async (notificationId: string) => {
+    const token = useAuthStore.getState().token;
+    try {
+      await api.notifications.markAsRead(notificationId, token);
+      set((s) => ({
+        notifications: s.notifications.map((n) =>
+          n.id === notificationId ? { ...n, read: true } : n
+        ),
+        unreadCount: Math.max(0, s.unreadCount - 1),
+      }));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+      throw error;
+    }
+  },
+
+  markAllNotificationsAsRead: async () => {
+    const token = useAuthStore.getState().token;
+    try {
+      await api.notifications.markAllAsRead(token);
+      set((s) => ({
+        notifications: s.notifications.map((n) => ({ ...n, read: true })),
+        unreadCount: 0,
+      }));
+    } catch (error) {
+      console.error('Failed to mark all as read:', error);
+      throw error;
+    }
+  },
+
+  deleteNotification: async (notificationId: string) => {
+    const token = useAuthStore.getState().token;
+    try {
+      await api.notifications.delete(notificationId, token);
+      set((s) => ({
+        notifications: s.notifications.filter((n) => n.id !== notificationId),
+      }));
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+      throw error;
+    }
+  },
+
+  clearAllNotifications: async () => {
+    const token = useAuthStore.getState().token;
+    try {
+      await api.notifications.clearAll(token);
+      set({ notifications: [], unreadCount: 0 });
+    } catch (error) {
+      console.error('Failed to clear notifications:', error);
+      throw error;
+    }
+  },
+
+  addNotification: (notification: Notification) => {
+    set((s) => ({
+      notifications: [notification, ...s.notifications],
+      unreadCount: s.unreadCount + 1,
     }));
   },
 

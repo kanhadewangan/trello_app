@@ -15,6 +15,10 @@ export default function TabLayout() {
     );
   }
 
+  if(!isHydrated){
+    return null; // or a loading spinner
+
+  }
   if (!isAuthenticated) {
     return <Redirect href="/" />;
   }

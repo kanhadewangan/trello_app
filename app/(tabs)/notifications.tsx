@@ -1,64 +1,54 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDataStore, Notification } from '../../store/useDataStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { NotificationItem, NotificationData } from '../../components/NotificationItem';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing } from '../../theme/spacing';
 
-const DUMMY_NOTIFICATIONS: NotificationData[] = [
-  {
-    id: 'n1',
-    actor: 'Alice Chen',
-    action: 'added a card to',
-    boardName: 'Product Roadmap',
-    timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    read: false,
-  },
-  {
-    id: 'n2',
-    actor: 'Bob Smith',
-    action: 'commented on a card in',
-    boardName: 'Design System',
-    timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    read: false,
-  },
-  {
-    id: 'n3',
-    actor: 'Carol D',
-    action: 'moved a card to Done in',
-    boardName: 'Engineering Backlog',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    read: true,
-  },
-  {
-    id: 'n4',
-    actor: 'Dave K',
-    action: 'assigned you a card in',
-    boardName: 'Marketing Q2',
-    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    read: true,
-  },
-  {
-    id: 'n5',
-    actor: 'Eve M',
-    action: 'archived a list in',
-    boardName: 'Onboarding Flow',
-    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    read: true,
-  },
-  {
-    id: 'n6',
-    actor: 'Alice Chen',
-    action: 'created board',
-    boardName: 'Q3 Planning',
-    timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-    read: true,
-  },
-];
-
 export default function NotificationsScreen() {
-  const unreadCount = DUMMY_NOTIFICATIONS.filter((n) => !n.read).length;
+  const { notifications, unreadCount, isLoading, fetchNotifications, fetchUnreadCount } = useDataStore();
+  const { isHydrated, isAuthenticated, token } = useAuthStore();
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  // Convert Notification to NotificationData for display
+  const convertNotification = (notif: Notification): NotificationData => {
+    return {
+      id: notif.id,
+      actor: notif.message.split(' ')[0] || 'User',
+      action: notif.type === 'BOARD_INVITATION' ? 'invited you to' : 
+              notif.type === 'GROUP_INVITATION' ? 'invited you to group' :
+              notif.type === 'CARD_ASSIGNED' ? 'assigned you to' :
+              notif.type === 'CARD_MOVED' ? 'moved a card to' :
+              notif.type === 'COMMENT_ADDED' ? 'commented on' : 'notified you about',
+      boardName: notif.message.split('"')[1] || 'a board',
+      timestamp: notif.createdAt,
+      read: notif.read,
+    };
+  };
+
+  useEffect(() => {
+    if (isHydrated && isAuthenticated) {
+      fetchNotifications(20, 0);
+      fetchUnreadCount();
+    }
+  }, [isHydrated, isAuthenticated, token]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        fetchNotifications(20, 0),
+        fetchUnreadCount(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const displayNotifications = notifications.map(convertNotification);
 
   return (
     <SafeAreaView style={styles.root}>
@@ -73,12 +63,15 @@ export default function NotificationsScreen() {
       </View>
 
       <FlatList
-        data={DUMMY_NOTIFICATIONS}
+        data={displayNotifications}
         keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => (
           <NotificationItem notification={item} index={index} />
         )}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />
+        }
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>No notifications yet</Text>

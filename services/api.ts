@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://10.210.128.40:3000';
+export const API_BASE_URL = 'http://10.210.128.59:3000';
 
 type AuthToken = string | null | undefined;
 
@@ -111,6 +111,16 @@ export const api = {
     getMany: (token?: AuthToken) => requestJson('/lists/get', undefined, token),
     getById: (listId: string, token?: AuthToken) => requestJson(`/lists/get/${encodeURIComponent(listId)}`, undefined, token),
     getByBoardId: (boardId: string, token?: AuthToken) => requestJson(`/lists/getbyboard/${encodeURIComponent(boardId)}`, undefined, token),
+    update: (listId: string, payload: { newTitle: string }, token?: AuthToken) =>
+      requestJson(`/lists/${encodeURIComponent(listId)}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      }, token),
+    updatePosition: (listId: string, payload: { newPosition: number }, token?: AuthToken) =>
+      requestJson(`/lists/${encodeURIComponent(listId)}/position`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      }, token),
     remove: (listId: string, token?: AuthToken) =>
       requestJson(`/lists/delete/${encodeURIComponent(listId)}`, {
         method: 'DELETE',
@@ -175,6 +185,33 @@ export const api = {
       requestJson(`/groups/${encodeURIComponent(groupId)}/remove`, {
         method: 'POST',
         body: JSON.stringify(payload),
+      }, token),
+  },
+  notifications: {
+    getAll: (token?: AuthToken, limit?: number, offset?: number) => {
+      const query = new URLSearchParams();
+      if (limit) query.append('limit', String(limit));
+      if (offset) query.append('offset', String(offset));
+      const endpoint = query.toString() ? `/notifications?${query}` : '/notifications';
+      return requestJson(endpoint, undefined, token);
+    },
+    getUnreadCount: (token?: AuthToken) =>
+      requestJson('/notifications/unread-count', undefined, token),
+    markAsRead: (notificationId: string, token?: AuthToken) =>
+      requestJson(`/notifications/${encodeURIComponent(notificationId)}/read`, {
+        method: 'PUT',
+      }, token),
+    markAllAsRead: (token?: AuthToken) =>
+      requestJson('/notifications/mark-all-read', {
+        method: 'PUT',
+      }, token),
+    delete: (notificationId: string, token?: AuthToken) =>
+      requestJson(`/notifications/${encodeURIComponent(notificationId)}`, {
+        method: 'DELETE',
+      }, token),
+    clearAll: (token?: AuthToken) =>
+      requestJson('/notifications/clear-all', {
+        method: 'DELETE',
       }, token),
   },
 };

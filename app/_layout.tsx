@@ -8,6 +8,7 @@ import '../global.css';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '../store/useAuthStore';
+import { View, ActivityIndicator } from 'react-native';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -15,11 +16,19 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const initializeAuth = useAuthStore((state) => state.initializeAuth);
+  const {initializeAuth, isHydrated} = useAuthStore((state) => state);
 
   useEffect(() => {
     initializeAuth();
   }, [initializeAuth]);
+  
+  if (!isHydrated) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

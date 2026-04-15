@@ -27,6 +27,7 @@ interface ListColumnProps {
   onCardPress?: (card: CardData) => void;
   onAddCard?: (listId: string, title: string, sectionId?: string) => void;
   onToggleSection?: (sectionId: string) => void;
+  onMenuPress?: (listId: string) => void;
 }
 
 export const ListColumn: React.FC<ListColumnProps> = ({
@@ -37,6 +38,7 @@ export const ListColumn: React.FC<ListColumnProps> = ({
   onCardPress,
   onAddCard,
   onToggleSection,
+  onMenuPress,
 }) => {
   const [addingCard, setAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
@@ -67,7 +69,7 @@ export const ListColumn: React.FC<ListColumnProps> = ({
       {/* List Header */}
       <View style={styles.header}>
         <Text style={styles.headerText} numberOfLines={1}>{title}</Text>
-        <Pressable hitSlop={8}>
+        <Pressable hitSlop={8} onPress={() => onMenuPress?.(id)}>
           <MaterialCommunityIcons name="dots-horizontal" size={20} color={colors.textSecondary} />
         </Pressable>
       </View>

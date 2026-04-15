@@ -10,21 +10,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useDataStore, CardItem } from '../../store/useDataStore';
+import { useDataStore, CardItem, ListItem } from '../../store/useDataStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { ListColumn } from '../../components/ListColumn';
 import { CardDetailSheet } from '../../components/CardDetailSheet';
+import { ListActionsSheet } from '../../components/ListActionsSheet';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, radius } from '../../theme/spacing';
 
 export default function BoardScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { lists, cards, boards, fetchListsAndCards, createList, createCard, updateCard, isLoading } =
+  const { lists, cards, boards, fetchListsAndCards, createList, createCard, updateCard, updateList, deleteList, isLoading } =
     useDataStore();
 
   const board = boards.find((b) => b.id === id);
   const [selectedCard, setSelectedCard] = useState<CardItem | null>(null);
+  const [selectedList, setSelectedList] = useState<ListItem | null>(null);
   const [addingList, setAddingList] = useState(false);
 
   const { isHydrated, isAuthenticated, token } = useAuthStore();
@@ -46,6 +48,21 @@ export default function BoardScreen() {
     if (!id) return;
     await createList(id, title);
     setAddingList(false);
+  };
+
+  const handleListMenuPress = (listId: string) => {
+    const list = lists.find((l) => l.id === listId);
+    if (list) {
+      setSelectedList(list);
+    }
+  };
+
+  const handleUpdateList = async (listId: string, newTitle: string) => {
+    await updateList(listId, newTitle);
+  };
+
+  const handleDeleteList = async (listId: string) => {
+    await deleteList(listId);
   };
 
   return (
@@ -88,6 +105,7 @@ export default function BoardScreen() {
                   cards={listCards}
                   onCardPress={(card) => setSelectedCard(card)}
                   onAddCard={handleAddCard}
+                  onMenuPress={handleListMenuPress}
                 />
               </ScrollView>
             );
@@ -113,6 +131,18 @@ export default function BoardScreen() {
           card={selectedCard}
           onClose={() => setSelectedCard(null)}
           onUpdate={(cardId, updates) => updateCard(cardId, updates)}
+        />
+      )}
+
+      {/* List actions bottom sheet */}
+      {selectedList && (
+        <ListActionsSheet
+          listId={selectedList.id}
+          listTitle={selectedList.title}
+          visible={!!selectedList}
+          onClose={() => setSelectedList(null)}
+          onUpdate={handleUpdateList}
+          onDelete={handleDeleteList}
         />
       )}
     </View>
