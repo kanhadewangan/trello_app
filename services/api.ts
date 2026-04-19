@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://10.210.128.59:3000';
+export const API_BASE_URL = 'http://localhost:3000';
 
 type AuthToken = string | null | undefined;
 
@@ -103,9 +103,9 @@ export const api = {
   },
   lists: {
     create: (payload: { boardId: string; title: string }, token?: AuthToken) =>
-      requestJson('/lists/create', {
+      requestJson(`/lists/create/${encodeURIComponent(payload.boardId)}`, {
         method: 'POST',
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ title: payload.title }),
       }, token),
     getAll: (token?: AuthToken) => requestJson('/lists/getall', undefined, token),
     getMany: (token?: AuthToken) => requestJson('/lists/get', undefined, token),

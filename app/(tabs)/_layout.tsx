@@ -1,4 +1,4 @@
-import { Tabs, Redirect } from 'expo-router';
+import { Tabs, Redirect, usePathname } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../store/useAuthStore';
 import { View, ActivityIndicator } from 'react-native';
@@ -6,7 +6,7 @@ import { colors } from '../../theme/colors';
 
 export default function TabLayout() {
   const { isAuthenticated, isHydrated } = useAuthStore();
-
+  const pathName = usePathname();
   if (!isHydrated) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}>
@@ -19,7 +19,7 @@ export default function TabLayout() {
     return null; // or a loading spinner
 
   }
-  if (!isAuthenticated) {
+  if (!isAuthenticated && isHydrated && pathName !== '/login') {
     return <Redirect href="/" />;
   }
 

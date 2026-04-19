@@ -6,7 +6,9 @@ import {
   FlatList,
   Pressable,
   ScrollView,
+  TextInput,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -20,7 +22,9 @@ import { typography } from '../../theme/typography';
 import { spacing, radius } from '../../theme/spacing';
 
 export default function BoardScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{ id: string | string[] }>();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  
   const { lists, cards, boards, fetchListsAndCards, createList, createCard, updateCard, updateList, deleteList, isLoading } =
     useDataStore();
 
@@ -28,6 +32,7 @@ export default function BoardScreen() {
   const [selectedCard, setSelectedCard] = useState<CardItem | null>(null);
   const [selectedList, setSelectedList] = useState<ListItem | null>(null);
   const [addingList, setAddingList] = useState(false);
+  const [newListTitle, setNewListTitle] = useState('');
 
   const { isHydrated, isAuthenticated, token } = useAuthStore();
 
@@ -45,9 +50,19 @@ export default function BoardScreen() {
   };
 
   const handleAddList = async (title: string) => {
-    if (!id) return;
-    await createList(id, title);
-    setAddingList(false);
+    if (!id) {
+      console.error('Board ID is not available');
+      setAddingList(false);
+      return;
+    }
+    try {
+      await createList(id, title);
+      setNewListTitle('');
+      setAddingList(false);
+    } catch (error) {
+      console.error('Failed to create list:', error);
+      setAddingList(false);
+    }
   };
 
   const handleListMenuPress = (listId: string) => {
@@ -112,16 +127,52 @@ export default function BoardScreen() {
           })}
 
           {/* Add another list */}
-          <Pressable
-            style={styles.addListBtn}
-            onPress={() => {
-              // Simple prompt-like inline addition
-              setAddingList(true);
-            }}
-          >
-            <MaterialCommunityIcons name="plus" size={18} color="#fff" />
-            <Text style={styles.addListText}>Add another list</Text>
-          </Pressable>
+          {addingList ? (
+            <Animated.View key="add-list-form" entering={FadeIn.duration(150)} style={styles.addListForm}>
+              <TextInput
+                style={styles.listInput}
+                placeholder="Enter list name…"
+                placeholderTextColor="rgba(255,255,255,0.5)"
+                value={newListTitle}
+                onChangeText={setNewListTitle}
+                autoFocus
+                maxLength={100}
+              />
+              <View style={styles.addListActions}>
+                <Pressable
+                  style={styles.confirmBtn}
+                  onPress={() => {
+                    if (newListTitle.trim()) {
+                      handleAddList(newListTitle.trim());
+                    }
+                  }}
+                  android_ripple={{ color: 'rgba(0,0,0,0.2)' }}
+                >
+                  <MaterialCommunityIcons name="check" size={18} color="#fff" />
+                  <Text style={styles.confirmBtnText}>Add</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.cancelBtn}
+                  onPress={() => {
+                    setAddingList(false);
+                    setNewListTitle('');
+                  }}
+                  android_ripple={{ color: 'rgba(0,0,0,0.2)' }}
+                >
+                  <MaterialCommunityIcons name="close" size={18} color="rgba(255,255,255,0.7)" />
+                </Pressable>
+              </View>
+            </Animated.View>
+          ) : (
+            <Pressable
+              key="add-list-btn"
+              style={styles.addListBtn}
+              onPress={() => setAddingList(true)}
+            >
+              <MaterialCommunityIcons name="plus" size={18} color="#fff" />
+              <Text style={styles.addListText}>Add another list</Text>
+            </Pressable>
+          )}
         </ScrollView>
       </SafeAreaView>
 
@@ -199,5 +250,49 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold,
     fontSize: typography.fontSize.base,
     marginLeft: 6,
+  },
+  addListForm: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    width: 200,
+    gap: spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  listInput: {
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.sm,
+    fontSize: typography.fontSize.base,
+    color: colors.textPrimary,
+    fontWeight: typography.fontWeight.medium,
+    minHeight: 40,
+  },
+  addListActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'flex-end',
+  },
+  confirmBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(76, 175, 80, 0.7)',
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    gap: 4,
+  },
+  confirmBtnText: {
+    color: '#fff',
+    fontWeight: typography.fontWeight.semibold,
+    fontSize: typography.fontSize.sm,
+  },
+  cancelBtn: {
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: radius.md,
+    padding: spacing.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
