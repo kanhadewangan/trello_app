@@ -1,4 +1,4 @@
-import { request, type Request, type Response } from 'express';
+import {  type Request, type Response } from 'express';
 import boards from '../service/board.service';
 
 export const createBoard = async (req: Request, res: Response) => {
