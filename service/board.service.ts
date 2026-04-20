@@ -24,9 +24,9 @@ class boards {
                 userId
             },
             select:{
+                id:true,
                 title:true,
-                description:true,
-                id:false
+                description:true
             }
           
         })
@@ -47,6 +47,7 @@ class boards {
                     id: boardId
                 },
                 select:{
+                    id:true,
                     title:true,
                     description:true
                 }
@@ -62,9 +63,22 @@ class boards {
                 userId: userId
             },
             select:{
+                id:true,
                 title:true,
-                description:true
-            }
+                description:true,
+                lists:{
+                    select:{
+                        title:true,
+                        cards:{
+                            select:{
+                                title:true,
+                                description:true
+                            }
+                        }
+                    }
+                }
+            },
+            
         });
         return boards;
     }

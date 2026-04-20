@@ -45,7 +45,8 @@ class group {
                     }
                 },
                 include: {
-                    members: true
+                    members: true,
+                    
                 }
             });
             return groups;  
