@@ -92,7 +92,7 @@ export default function HomeScreen() {
           </View>
           <FlatList
             data={boards.filter((b) => b.starred)}
-            keyExtractor={(b) => b.id + '_star'}
+            keyExtractor={(b, index) => b.id ? `${b.id}_star` : `starred_${index}`}
             renderItem={({ item, index }) => (
               <Pressable
                 style={styles.starredChip}
@@ -123,7 +123,7 @@ export default function HomeScreen() {
       ) : (
         <FlatList
           data={listData}
-          keyExtractor={(item, i) => (item === 'create' ? 'create' : item.id)}
+          keyExtractor={(item, i) => (item === 'create' ? 'create' : (item.id || `board_${i}`))}
           renderItem={renderItem}
           numColumns={2}
           contentContainerStyle={styles.gridContent}

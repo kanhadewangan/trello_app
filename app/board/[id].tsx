@@ -29,6 +29,7 @@ export default function BoardScreen() {
     useDataStore();
 
   const board = boards.find((b) => b.id === id);
+  console.log('BoardScreen render - board:', board, 'lists:', lists, 'cards:', cards);
   const [selectedCard, setSelectedCard] = useState<CardItem | null>(null);
   const [selectedList, setSelectedList] = useState<ListItem | null>(null);
   const [addingList, setAddingList] = useState(false);

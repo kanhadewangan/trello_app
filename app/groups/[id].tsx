@@ -119,31 +119,23 @@ export default function GroupDetailScreen() {
         </View>
 
         {/* Members Section */}
-        <View className="mb-8">
-          <Text className="text-lg font-bold text-gray-900 mb-4">
-            Members ({group.members?.length || 0})
-          </Text>
-          {group.members && group.members.length > 0 ? (
-            <View className="gap-2">
-              {group.members.map((member: string, index: number) => (
-                <View
-                  key={index}
-                  className="flex-row items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-200"
-                >
-                  <Text className="text-gray-900">{member}</Text>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveMember(member, member)}
-                    className="bg-red-50 px-3 py-2 rounded min-w-[60px] items-center"
-                  >
-                    <Text className="text-red-600 text-sm font-semibold">Remove</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <Text className="text-gray-500">No members yet</Text>
-          )}
-        </View>
+     {group.members.map((member: { id: string; name: string; email: string }, index: number) => (
+  <View
+    key={member.id}  // 👈 use id as key, not index
+    className="flex-row items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-200"
+  >
+    <View>
+      <Text className="text-gray-900 font-medium">{member.name}</Text>   {/* 👈 use .name */}
+      <Text className="text-gray-500 text-sm">{member.email}</Text>       {/* 👈 use .email */}
+    </View>
+    <TouchableOpacity
+      onPress={() => handleRemoveMember(member.id, member.name)}  
+      className="bg-red-50 px-3 py-2 rounded min-w-[60px] items-center"
+    >
+      <Text className="text-red-600 text-sm font-semibold">Remove</Text>
+    </TouchableOpacity>
+  </View>
+))}
 
         {/* Invited Members Section */}
         {group.invitedMembers && group.invitedMembers.length > 0 && (
