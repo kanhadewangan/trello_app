@@ -26,6 +26,11 @@ class users {
                     name: this.name,
                     email: this.email,
                     password: this.password
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true
                 }
             })
             return user;
@@ -83,6 +88,11 @@ class users {
             const user = await prisma.users.findFirst({
                 where: {
                     email: this.email
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true
                 }
             })
             return user;
