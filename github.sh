@@ -5,10 +5,10 @@ read -p "Enter commit message: " commit_message
 git add .
 git commit -m "$commit_message"
 read -p "Do you want to push the code to github? (y/n) " answer
-if [ "$answer" = "y"  || "$answer" = "Y"  || "$answer" = "yes" || "$answer" = "YES" ]; then
+if [[ "$answer" = "y"  || "$answer" = "Y"  || "$answer" = "yes" || "$answer" = "YES" ]]; then
  read -p "Enter branch name: " branch_name
     git push origin $branch_name
-else [ "$answer" = "n" || "$answer" = "N" || "$answer" = "no" || "$answer" = "NO" ]
+else [[ "$answer" = "n" || "$answer" = "N" || "$answer" = "no" || "$answer" = "NO" ]]
     echo "Code not pushed to github."
 fi 
 
