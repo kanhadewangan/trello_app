@@ -52,13 +52,11 @@ export const loginUser = async (req : Request, res : Response) => {
     const {email, password} = req.body;
     const user = new users("", email as string, password);
     try {
-        const foundUser = await user.getUserByEmail();
+        const foundUser = await user.login();
         if(!foundUser) {
-            res.status(404).json({message: "User not found"});
-        } else if (foundUser.password !== password) {
             res.status(401).json({message: "Invalid credentials"});
         } else {
-            const token = jwt.sign({userId: foundUser.id}, process.env.JWT_SECRET as string, {expiresIn: '1h'});
+            const token = jwt.sign({userId: foundUser.id}, process.env.JWT_SECRET as string, {expiresIn: '30d'});
             res.status(200).json({token});
         }
     } catch (error: any) {

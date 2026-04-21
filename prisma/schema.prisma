@@ -46,11 +46,13 @@ model card {
   id          String   @id @default(uuid())
   listId      String
   title       String
-  description String
+  description String?
   position    Int
+  isComplete  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   list        list     @relation(fields: [listId], references: [id])
+
 }
 
 model invitation {

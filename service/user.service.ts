@@ -137,6 +137,11 @@ class users {
                 },
                 data: {
                     password: newPassword
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true
                 }
             })
             return user;
