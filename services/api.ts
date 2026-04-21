@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://localhost:3000';
+export const API_BASE_URL = 'http://10.211.33.63:3000';
 
 type AuthToken = string | null | undefined;
 
