@@ -52,7 +52,8 @@ model card {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   list        list     @relation(fields: [listId], references: [id])
-
+ issues      githubIssue[]
+ 
 }
 
 model invitation {
@@ -84,4 +85,19 @@ model notifications {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   users users @relation(fields: [userId], references: [id])
+}
+
+model  githubIssue {
+  id String @id @default(uuid())
+  issueId Int
+  title String
+  body String
+  url String
+  sourceId Int
+  source String
+  status String
+  label String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cards card[]
 }

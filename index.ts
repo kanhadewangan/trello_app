@@ -11,7 +11,7 @@ import notificationRoutes from './routes/notification.route';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { initializeSocket } from './service/socket.service';
-
+import githubWebhook from './webhook/github';
 dotenv.config();
 const app = express();
 const httpServer = createServer(app);
@@ -27,7 +27,7 @@ app.use(express.json());
 app.use(cors({
     origin: "*"
 }))
-
+app.use(githubWebhook); // Register GitHub webhook handler
 // Initialize socket.io handlers
 initializeSocket(io);
 
